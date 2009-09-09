@@ -76,13 +76,29 @@ module ActiveMerchant #:nodoc:
                                                         @options[:invoice],@options[:password1],
                                              shp_fields_to_param ].flatten.join(':')) 
           @method_id = method_id.to_s.split("_").last.to_sym
-          send(@method_id)
+          if valid_summa? && valid_invoice?
+            send(@method_id)
+          else
+            false
+          end
         else
           super
         end
       end
       
      private
+      
+      def valid_invoice
+        !@options[:invoice].nil? && !@options[:invoice].to_s.empty?
+      end
+
+      alias valid_invoice? valid_invoice
+      
+      def valid_summa
+        !@options[:summa].nil? && !(@options[:summa] == 0) && (Kernel.Float(@options[:summa]) rescue false)
+      end
+      alias valid_summa? valid_summa
+      
       def kassa
         url = test? ? TEST_HTML_KASSA_URL : LIVE_HTML_KASSA_URL                
         params = ["MrchLogin=#{@options[:login]}", "OutSum=#{@options[:summa]}",
