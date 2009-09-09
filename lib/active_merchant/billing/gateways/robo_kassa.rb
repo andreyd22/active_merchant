@@ -110,6 +110,51 @@ module ActiveMerchant #:nodoc:
       end
       
       alias :success? :success
+      
+      # ==========================================================================================
+      # XML - интерфейс
+      # ==========================================================================================
+      
+      
+      # Статус операции
+      # invoice - номер платежа
+      def state_operation(invoice)
+        url = test? ? TEST_XML_URLS[:state_operation] : LIVE_XML_URLS[:state_operation]
+        if invoice.is_a?(Integer) || invoice.is_a?(String)
+          @invoice = invoice
+        elsif invoice.is_a?(Hash) && invoice.has_key?(:InvId)
+           @invoice = invoice[:InvId]
+        else 
+          false
+        end
+        
+        signature = Digest::MD5.hexdigest([ @options[:login],@invoice, @options[:password2]].join(':'))    
+        state_code = 100 if test?
+
+        xml = Builder::XmlMarkup.new
+        xml.instruct!
+        xml.tag! 'robox.opstate.req' do
+          xml.tag! 'merchant_login', @options[:login]
+          xml.tag! 'merchant_invid', @invoice
+          xml.tag! 'crc', signature
+          xml.tag!('state_code', state_code) if test?
+        end
+
+        result =ssl_post(url,xml.target!)
+        
+        status = { }
+        xml = REXML::Document.new(result)
+
+       elements =  REXML::XPath.first(xml, "robox.opstate.resp").root.elements
+        status[:retval] = STATE_OPERATION_RET_CODE[elements[1].text]
+        status[:date] = elements[2].text
+        status[:out_curr] =elements[3].text
+        status[:out_cnt] =elements[4].elements[1].text
+        status[:state] = elements[4].elements[2].text
+        status[:description] = STATE_OPERATION[elements[4].elements[2].text]
+
+        return status
+      end
      private
       
       def valid_invoice
