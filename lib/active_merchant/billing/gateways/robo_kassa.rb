@@ -65,6 +65,8 @@ module ActiveMerchant #:nodoc:
         @custom_fields = { }        
         super
       end  
+      
+      
       # payment_kassa, payment_button - методы для создания html кода кассы и кнопки оплаты
       
       def method_missing(method_id, options ={ }, shp_fields ={ })
@@ -86,18 +88,28 @@ module ActiveMerchant #:nodoc:
         end
       end
       
+      def result(params)
+        out_sum,invoice_id = params[:OutSum], params[:InvId]
+        in_signature = params[:SignatureValue]
+        params.each {|k,v| @custom_fields[k.to_sym] = v if k =~ /^shp/}
+        signature = Digest::MD5.hexdigest([ out_sum,invoice_id, @options[:password2], 
+                                            shp_fields_to_param].flatten.join(':')) 
+        in_signature.upcase == signature.upcase ? true : false
+      end
+      
+      alias :result? :result
      private
       
       def valid_invoice
         !@options[:invoice].nil? && !@options[:invoice].to_s.empty?
       end
 
-      alias valid_invoice? valid_invoice
+      alias :valid_invoice? :valid_invoice
       
       def valid_summa
         !@options[:summa].nil? && !(@options[:summa] == 0) && (Kernel.Float(@options[:summa]) rescue false)
       end
-      alias valid_summa? valid_summa
+      alias :valid_summa? :valid_summa
       
       def kassa
         url = test? ? TEST_HTML_KASSA_URL : LIVE_HTML_KASSA_URL                
