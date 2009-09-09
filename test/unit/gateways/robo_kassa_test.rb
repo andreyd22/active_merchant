@@ -27,7 +27,7 @@ class RoboKassaTest < Test::Unit::TestCase
    assert_equal false, @gateway.payment_kassa({ :invoice => 3 })
   end 
   
-  def test_should_result_true_on_call_result_method
+  def test_should_result_true_on_call_result_method_with_valid_params
     @params = { :OutSum => "300.98", :InvId => "23", :SignatureValue => "70a1f4af4e52b96a00956bb1dc21ea5c" }
     assert_equal true, @gateway.result?(@params)
   end
@@ -35,4 +35,13 @@ class RoboKassaTest < Test::Unit::TestCase
     @params = { :OutSum => "300.98", :InvId => "23", :SignatureValue => "7f4af4e52b96a00956bb1dc21ea5c" }
     assert_equal false, @gateway.result?(@params)
   end
+  
+  def test_should_result_true_on_call_success_method_with_valid_params
+    @params = { :OutSum => "300.98", :InvId => "23", :SignatureValue => "245a05fa325a5b63b2788865f46f20bf" }
+    assert_equal true, @gateway.success?(@params)
+  end  
+  def test_should_result_false_on_call_success_method_with_valid_params
+    @params = { :OutSum => "30.98", :InvId => "23", :SignatureValue => "245a05fa325a5b63b2788865f46f20bf" }
+    assert_equal false, @gateway.success?(@params)
+  end    
 end

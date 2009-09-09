@@ -98,6 +98,18 @@ module ActiveMerchant #:nodoc:
       end
       
       alias :result? :result
+      
+      def success(params)
+        out_sum,invoice_id = params[:OutSum], params[:InvId]
+        in_signature = params[:SignatureValue]
+        params.each {|k,v| @custom_fields[k.to_sym] = v if k =~ /^shp/}        
+        signature = Digest::MD5.hexdigest([ out_sum,invoice_id, 
+                                            @options[:password1],
+                                            shp_fields_to_param ].flatten.join(':')) 
+        in_signature.upcase == signature.upcase ? true : false
+      end
+      
+      alias :success? :success
      private
       
       def valid_invoice
