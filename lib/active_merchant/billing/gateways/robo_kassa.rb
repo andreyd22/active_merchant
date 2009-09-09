@@ -155,6 +155,59 @@ module ActiveMerchant #:nodoc:
 
         return status
       end
+      
+      # списка курсов обмена
+      def exchange_rate(options)
+        url = test? ? TEST_XML_URLS[:exchange_rate] : LIVE_XML_URLS[:exchange_rate]
+        out_count = options[:out_count] || 1
+        merchant_login = @options[:login]
+        inc_curr_label = options[:inc_curr] || ""
+        out_curr_label = options[:out_curr] # required
+        xml = Builder::XmlMarkup.new
+        xml.instruct!
+        xml.tag! 'robox.rate.req' do
+          xml.tag! 'in_curr',inc_curr_label
+          xml.tag! 'out_curr', out_curr_label
+          xml.tag! 'merchant_login', merchant_login
+          xml.tag! 'out_cnt', out_count
+        end
+
+        list =ssl_post(url,xml.target!)
+        
+        currency = { }
+        xml = REXML::Document.new(list)
+
+        elements =  REXML::XPath.first(xml, "robox.rate.resp").root.elements
+        currency[:retval] = elements[1].text
+        currency[:retval_description] = EXCHANGE_RATE_RET_CODE[elements[1].text]        
+        currency[:out_curr_label] = elements[2].text
+        currency[:out_cnt] = elements[3].text
+        currency[:date] = elements[4].text
+        currency[:rate_list] = [ ]
+        rate_list = elements[5]
+        rate_list.elements.each do |rate|
+          currency[:rate_list] << { 
+            :in_curr => rate.elements[1].text,
+            :in_curr_name => rate.elements[2].text,
+            :value => rate.elements[3].text,
+            :in_count => rate.elements[4].text }
+        end
+        return currency
+      end
+
+      # список валют
+      def currency
+        url = test? ? TEST_XML_URLS[:list_currency] : LIVE_XML_URLS[:list_currency]
+        list =ssl_get(url,{ })
+        currency = []
+        xml = REXML::Document.new(list)
+
+        REXML::XPath.first(xml, "robox.currlist.resp").root.elements.each do |item|
+          currency << { :curr => item.elements[1].text, :name => item.elements[2].text,} 
+        end
+        return currency
+      end
+      
      private
       
       def valid_invoice
