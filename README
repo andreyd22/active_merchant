@@ -1,4 +1,70 @@
 = Active Merchant
+Добавлен интерфейс RoboKassa (http://robokassa.ru)
+
+Пример использования (RoR):
+
+в /config/enviroment.rb добавить
+ 
+config.after_initialize do
+  ActiveMerchant::Billing::Base.mode = :test || :live
+end
+
+class PaymentsController < ApplicationController
+  def index
+    @robo_kassa=  ActiveMerchant::Billing::RoboKassaGateway.new( { :login => 'login', 
+                                              :password1 => 'p1', :password2 => 'p2'} )
+  end
+  
+  def result
+    @robo_kassa=  ActiveMerchant::Billing::RoboKassaGateway.new( { :login => 'login', 
+                                              :password2 => 'p1', :pasword1 => 'p2'} )
+    if @robo_kassa.result?(params)
+       @status_operation = @robo_kassa.state_operation(params) - возвращает хэш состояние операции
+      render :text => :ok, :status => :ok
+    else
+      render :text => :no, :status => 500
+    end
+  end
+
+  def success
+    @robo_kassa=  ActiveMerchant::Billing::RoboKassaGateway.new( { :login => 'login', 
+                                                     :password1 => 'p1', :password2 => 'p2'} )
+    if @robo_kassa.success?(params)
+      flash[:notice] = 'Successfully'
+      render :action => "success"      
+    else
+      flash[:error] = 'error'
+      render :action => "success"
+    end
+  end
+  
+  def fail
+    
+  end
+
+end
+
+
+./payments/index.html.erb
+<!-- Параметры кассы -->
+<!-- invoice - номер счета -->
+<!-- summa - сумма для оплаты -->
+<!-- форма оплаты на странице магазина-->
+<!-- shp_ - пользовательские данные, должны нач-ся с shp-->
+<!-- :payment_currency - валюта платежа(WMR) -->
+<!-- :language - язык взаимодействия с покупателем(RU) -->
+<!-- :encoding - кодировка(utf-8) -->
+<!-- :value - надпись на кнопке('Оплатить') -->
+<!-- форма оплаты -->
+<div><%= @robo_kassa.payment_kassa({:invoice => "23", :summa => 12} ) %></div>
+
+<div>
+  <div>Счет № 12 </div>
+  <div>Сумма: 12</div>
+<!-- кнопка оплаты -->
+  <%= @robo_kassa.payment_button({:invoice => "23", :summa => 12, :value => "Оплатить"},{:shpa => "qiwi"} ) %> 
+</div>
+
 
 This library is supposed to aid in creating e-commerce software in Ruby.
 In the future we want to support all "good" payment gateways.

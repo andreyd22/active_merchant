@@ -67,8 +67,17 @@ module ActiveMerchant #:nodoc:
       end  
       
       
-      # payment_kassa, payment_button - методы для создания html кода кассы и кнопки оплаты
-      
+      # Html код кассы и кнопки оплаты для сайта 
+      # методы для создания html кода кассы и кнопки оплаты      
+      # обязательные параметры 
+      # :invoice = номер платежа 
+      # :summa = сумма платежа
+      # необязательные параметры
+      # :description: описание товара ("")
+      # language: язык (RU)
+      # encoding: кодировка (UTF-8)
+      # payment_currentcy - валюта платежа (WMR)
+      # value - надпись на кнопки (Оплатить)
       def method_missing(method_id, options ={ }, shp_fields ={ })
         if (method_id == :payment_button) ||
             ( method_id == :payment_kassa)
@@ -87,7 +96,7 @@ module ActiveMerchant #:nodoc:
           super
         end
       end
-      
+       # При проверке указываеться пароль2 на проверку результат
       def result(params)
         out_sum,invoice_id = params[:OutSum], params[:InvId]
         in_signature = params[:SignatureValue]
@@ -98,7 +107,7 @@ module ActiveMerchant #:nodoc:
       end
       
       alias :result? :result
-      
+       # при проверки положительно завершения используеться пароль1
       def success(params)
         out_sum,invoice_id = params[:OutSum], params[:InvId]
         in_signature = params[:SignatureValue]
