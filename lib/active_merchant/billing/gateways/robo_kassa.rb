@@ -13,9 +13,9 @@ module ActiveMerchant #:nodoc:
         :state_operation => "http://test.robokassa.ru/Xml/OpState.ashx"
       }
       LIVE_XML_URLS = {
-        :list_currency =>   "http://www.roboxchange.com/xml/currlist.asp",
-        :exchange_rate =>   'http://www.roboxchange.com/xml/rate.asp',
-        :state_operation => "https://www.roboxchange.com/xmlssl/opstate.asp" 
+        :list_currency =>   "http://merchant.roboxchange.com/Handler/Xml/CurrList.ashx",
+        :exchange_rate =>   'http://merchant.roboxchange.com/Handler/Xml/Rate.ashx',
+        :state_operation => "https://merchant.roboxchange.com/Handler/Xml/OpState.ashx" 
       } 
       
       STATE_OPERATION_RET_CODE ={
